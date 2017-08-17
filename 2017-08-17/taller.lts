@@ -1,0 +1,78 @@
+// Ejercicio 1.
+ENCUENTRO = (hola -> conversar -> adios -> STOP).
+
+TRABAJO = (llego -> trabajo -> parto -> TRABAJO).
+
+JUEGO = (tres -> perdi -> JUEGO | dos -> I | uno -> I),
+    I = (gane -> JUEGO).
+
+MOVIMIENTO = (adelante -> I),
+         I = (derecha -> MOVIMIENTO | izquierda -> STOP).
+
+DOBLE = (in[i : 1..3] -> I[2*i]),
+  I[i:2..6] = (out[i] -> DOBLE).
+
+CUATROTICKS = (tick -> tick -> tick -> tick -> STOP).
+
+// Ejercicio 2.1.
+range FREC = 88..108
+RADIO_OFF = (on -> RADIO[108]),
+RADIO[frec:FREC] = (when (frec > 88) scan -> RADIO[frec-1] |
+                    when (frec == 88) end -> RADIO_OFF | 
+                    lock -> RADIO[frec] |
+                    off -> RADIO_OFF |
+                    reset -> RADIO[108]).
+
+// Ejercicio 2.2.
+const N = 2
+range VAL = 0..N
+VARIABLE = (write[i:VAL] -> VALUE[i]),
+VALUE[i:VAL] = (read[i] -> VALUE[i] | write[j:VAL] -> VALUE[j]). 
+
+// Ejercicio 2.3.
+CIRCUITO = (trigger -> I),
+       I = (out[1] -> J),
+       J = (trigger -> K),
+       K = (out[0] -> CIRCUITO).
+
+// Ejercicio 2.4.
+SENSORA = (normal -> NIVEL[5]),
+NIVEL[9] = (normal -> NIVEL[8] | alto -> NIVEL[9]),
+NIVEL[8] = (normal -> NIVEL[7] | normal -> NIVEL[8] | alto -> NIVEL[9]),
+NIVEL[2] = (bajo -> NIVEL[1] | normal -> NIVEL[2] | normal -> NIVEL[3]),
+NIVEL[1] = (bajo -> NIVEL[0] | bajo -> NIVEL[1] | normal -> NIVEL[2]),
+NIVEL[0] = (bajo -> NIVEL[0] | bajo -> NIVEL[1]),
+NIVEL[i:3..7] = (normal -> NIVEL[i] | normal -> NIVEL[i-1] | normal -> NIVEL[i+1]).
+
+// Solucion alternativa.
+range TEMPS = 0..9
+SENSOR = SENSOR[5],
+SENSOR[i:TEMPS] = (when (i < 9) in[i+1] -> AVISAR[i+1] | when (i > 0) in[i-1] -> AVISAR[i-1] | in[i] -> AVISAR[i]),
+AVISAR[i:TEMPS] = (when (i < 2) bajo -> SENSOR[i] | when (i >= 2 && i < 9) normal -> SENSOR[i] | when (i == 9) alto -> SENSOR[i]). 
+
+// Ejercicio 2.5.
+MICROONDAS = (cerrar -> PUERTA_CERRADA | {descongelar, calentar, grill} -> MICROONDAS),
+PUERTA_CERRADA = (comenzar -> COMENZADO | {descongelar, calentar, grill} -> PUERTA_CERRADA | abrir -> MICROONDAS),
+COMENZADO = (abrir -> MICROONDAS | terminar -> PUERTA_CERRADA).
+
+// Ejercicio 2.6.
+const SERVER_NUM = 3
+range SERVER_RANGE = 0..(SERVER_NUM-1)
+ACEL_PETICIONES = (request_usuario -> REQ_RECIBIDA),
+REQ_RECIBIDA = (broadcast_request_servers -> REQ_ENVIADA),
+REQ_ENVIADA = (response_acelerador[i:SERVER_RANGE] -> START_CANCELING[i]),
+START_CANCELING[i:SERVER_RANGE] = (when (i == 0) cancelar_request[1] -> CANCEL_REQUESTS[0][1] |
+                                     when (i > 0) cancelar_request[0] -> CANCEL_REQUESTS[i][0]),
+CANCEL_REQUESTS[i:SERVER_RANGE][j:SERVER_RANGE] = (when (j == SERVER_NUM-1) response_usuario -> ACEL_PETICIONES | 
+                                                   when (j == SERVER_NUM-2 && i == SERVER_NUM-1) response_usuario -> ACEL_PETICIONES |
+                                                   when (j < SERVER_NUM-1 && i < SERVER_NUM-1 && i == j+1) cancelar_request[j+2] -> CANCEL_REQUESTS[i][j+2] |
+                                                   when (j < SERVER_NUM-1 && i != j+1) cancelar_request[j+1] -> CANCEL_REQUESTS[i][j+1]).
+
+// Ejercicio 2.7.
+range MONEDAS = 5..35
+CAFE = (in[5] -> CAFE[5] | in[10] -> CAFE[10] | in[20] -> CAFE[20]),
+CAFE[i:MONEDAS] = (when (i == 15) dar_cafe -> CAFE |
+                   when (i > 15) devolver_cambio[i-15] -> dar_cafe -> CAFE |
+                   when (i < 15) in[5] -> CAFE[i+5] |
+                   when (i < 15) in[10] -> CAFE[i+10] |
+                   when (i < 15) in[20] -> CAFE[i+20]).

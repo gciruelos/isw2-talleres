@@ -1,0 +1,8 @@
+F = (in[i : 0..5] -> F[i]),
+F'[i : 0..5] = (when (i == 3) out[i] -> F |
+                when (i != 3) descarte -> F).
+
+
+F = (in[i : 0..5] -> F[i]),
+F'[i : 0..5] = (when (i == 3) out[i] -> F |
+                when (i != 3) in -> F').
