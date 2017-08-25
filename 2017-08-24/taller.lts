@@ -1,0 +1,57 @@
+// Ejercicio 1.
+P = (a -> b -> P).
+Q = (c -> b -> Q).
+// S2 = (a -> c -> b -> S2 | c -> a -> b -> S2).
+// S1 = (P || Q).
+
+// Ejercicio 2.
+set U_NAMES = {a,b}
+SERVER = (request -> service -> reply -> SERVER).
+CLIENT = (request -> reply -> continue -> CLIENT).
+// ||CLIENT_SERVER = (U_NAMES:CLIENT || U_NAMES::SERVER) /{service/U_NAMES.service}.
+
+// Ejercicio 3.
+CLIENT_TIMEOUT = (request -> (reply -> continue -> CLIENT_TIMEOUT | timeout -> CLIENT_TIMEOUT)).
+// ||CLIENT_SERVER_TIMEOUT = (U_NAMES:CLIENT_TIMEOUT || U_NAMES:SERVER) /{service/U_NAMES.service}.
+// Si alguien hace timeout, nunca mas va a hacer reply con su servidor, que quedo colgado.
+
+// Ejercicio 4.
+const M = 4
+const P = 7
+MOLINETE = (pasajero -> MOLINETE).
+TREN = (arribo -> partida -> TREN).
+CONTROL4 = CONTROL4[0],
+CONTROL4[i:0..P] = (when (i<P) pasajero -> CONTROL4[i+1] |
+                   when (i>=M) arribo -> partida -> CONTROL4[i-M]).
+// ||MONTANIA_RUSA = (TREN || MOLINETE || CONTROL4).
+
+// Ejercicio 5.
+const MAX_TURISTAS = 4
+range N_TURISTAS = 0..MAX_TURISTAS
+ESTE = (turista.in -> ESTE).
+OESTE = (turista.out -> OESTE).
+CONTROL5 = CONTROL5[0][1],
+CONTROL5[i:N_TURISTAS][abierto:0..1] = (when (i < MAX_TURISTAS && abierto == 1) turista.in -> CONTROL5[i+1][abierto] |
+                                       when (i > 0) turista.out -> CONTROL5[i-1][abierto] |
+                                       when (i == 0) vacio -> CONTROL5[i][abierto] |
+                                       abrir -> CONTROL5[i][1] |
+                                       cerrar -> CONTROL5[i][0]).
+DIRECTOR = (abrir -> cerrar -> vacio -> DIRECTOR).
+// ||MUSEO = (ESTE || OESTE || CONTROL5 || DIRECTOR).
+
+// Ejercicio 6.
+set SERVERS = {a,b}
+USER = (request -> reply -> user_work -> USER).
+ACEL_PETICIONES = (request -> broadcast_request -> SERVERS.reply -> broadcast_cancel -> reply -> ACEL_PETICIONES).
+MINI_SERVER = (broadcast_request ->
+                  (process ->
+                      (reply -> broadcast_cancel -> MINI_SERVER |
+                       broadcast_cancel -> MINI_SERVER) |
+                   broadcast_cancel -> MINI_SERVER)).
+// ||ACEL = (USER || ACEL_PETICIONES || SERVERS:MINI_SERVER/{broadcast_cancel/SERVERS.broadcast_cancel, broadcast_request/SERVERS.broadcast_request}).
+
+// Ejercicio 7.
+PUERTA = (abrir -> cerrar -> PUERTA).
+MODO_DE_COCCION = ({descongelar, calentar, grill} -> cambio.modo -> MODO_DE_COCCION).
+HORNO = (on -> off -> HORNO).
+
