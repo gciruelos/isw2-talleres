@@ -51,7 +51,22 @@ MINI_SERVER = (broadcast_request ->
 // ||ACEL = (USER || ACEL_PETICIONES || SERVERS:MINI_SERVER/{broadcast_cancel/SERVERS.broadcast_cancel, broadcast_request/SERVERS.broadcast_request}).
 
 // Ejercicio 7.
+set MODO = {descongelar, calentar, grill}
 PUERTA = (abrir -> cerrar -> PUERTA).
-MODO_DE_COCCION = ({descongelar, calentar, grill} -> cambio.modo -> MODO_DE_COCCION).
-HORNO = (on -> off -> HORNO).
+MODO_DE_COCCION = (MODO -> MODO_DE_COCCION).
+HORNO = HORNO[0][0],
+HORNO[1][0] = (abrir -> HORNO[0][1] | terminar -> HORNO[0][0]),
+HORNO[0][0] = (on -> HORNO[1][0] | abrir -> HORNO[0][1]),
+HORNO[0][1] = (cerrar -> HORNO[0][0]).
+// ||MICROONDAS = (PUERTA || MODO_DE_COCCION || HORNO).
 
+// Ejercicio 8.
+set ELEMS = {a,b,c,d,e}
+const N_ELEMS = 5
+range R_ELEMS = 0..N_ELEMS
+const CONSECUTIVOS = 4
+ELEMENT = (up -> down -> ELEMENT).
+CONTROL = CONTROL[0],
+CONTROL[i:R_ELEMS] = (when (i == CONSECUTIVOS) ELEMS.down -> CONTROL[0] |
+                      when (i < N_ELEMS) ELEMS.up -> CONTROL[i+1]).
+||OPTATIVO = (ELEMS:ELEMENT || CONTROL).
