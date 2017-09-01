@@ -1,0 +1,58 @@
+// Ejercicio 1.
+const MAX = 12
+range NS = 1..MAX
+
+GEN = GEN[2],
+GEN[i:NS] = (out[i] -> GEN[i+1]),
+GEN[MAX+1] = (eos -> STOP).
+
+PIPE = (out[i:NS] -> in[i] -> PIPE).
+
+FILTRO = (in[k:NS] -> print[k] -> FILTRAR2[k]),
+FILTRAR2[p:NS] = (in[k:NS] -> FILTRAR3[p][k]),
+FILTRAR3[p:NS][k:NS] = (when (k % p != 0) out[k] -> FILTRAR2[p] |
+                        when (k % p == 0) nada[k] ->  FILTRAR2[p]).
+
+
+
+// 1.a.
+||PRIMOS = (gen:GEN || {a,b,c,d,e}:PIPE || {x,y,z,w,v}:FILTRO)
+        /{gen.out/a.out, x.in/a.in,
+          x.out/b.out, y.in/b.in,
+          y.out/c.out, z.in/c.in,
+          z.out/d.out, w.in/d.in,
+          w.out/e.out, v.in/e.in}
+        @{{x,y,z,w,v}.print}.
+
+
+/*
+// 1.b.
+||PRIMOSSINPIPE = (gen:GEN || {x,y,z,w,v}:FILTRO)
+        /{gen.out/x.in,
+          x.out/y.in,
+          y.out/z.in,
+          z.out/w.in,
+          w.out/v.in}
+        @{{x,y,z,w,v}.print}.
+*/
+/*
+// 1.c.
+PIPEBUFFER2 = (out[i:NS] -> TENGO[i]),
+TENGO[i:NS] = (in[i] -> PIPEBUFFER2 | out[j:NS] -> in[i] -> TENGO[j]).
+
+||PRIMOSBUFF2 = (gen:GEN || {a,b,c,d,e}:PIPEBUFFER2 || {x,y,z,w,v}:FILTRO)
+        /{gen.out/a.out, x.in/a.in,
+          x.out/b.out, y.in/b.in,
+          y.out/c.out, z.in/c.in,
+          z.out/d.out, w.in/d.in,
+          w.out/e.out, v.in/e.in}
+        @{{x,y,z,w,v}.print}.
+*/
+
+// 1.c. 
+//   i) no se comportan igual.
+//   ii) para MAX=12:
+//         1.a. tiene 590 estados y 1466 transiciones.
+//         1.b. directo: tiene 108 estados y 197 transiciones.
+//              buffer2: tiene 1045 estados y 2908 transiciones.
+//   iii) el de buffer2.
