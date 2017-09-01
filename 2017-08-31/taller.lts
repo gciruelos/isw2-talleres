@@ -1,5 +1,5 @@
 // Ejercicio 1.
-const MAX = 12
+const MAX = 2
 range NS = 1..MAX
 
 GEN = GEN[2],
@@ -15,6 +15,7 @@ FILTRAR3[p:NS][k:NS] = (when (k % p != 0) out[k] -> FILTRAR2[p] |
 
 
 
+/*
 // 1.a.
 ||PRIMOS = (gen:GEN || {a,b,c,d,e}:PIPE || {x,y,z,w,v}:FILTRO)
         /{gen.out/a.out, x.in/a.in,
@@ -23,10 +24,10 @@ FILTRAR3[p:NS][k:NS] = (when (k % p != 0) out[k] -> FILTRAR2[p] |
           z.out/d.out, w.in/d.in,
           w.out/e.out, v.in/e.in}
         @{{x,y,z,w,v}.print}.
-
+*/
 
 /*
-// 1.b.
+// 1.b. directo.
 ||PRIMOSSINPIPE = (gen:GEN || {x,y,z,w,v}:FILTRO)
         /{gen.out/x.in,
           x.out/y.in,
@@ -35,8 +36,9 @@ FILTRAR3[p:NS][k:NS] = (when (k % p != 0) out[k] -> FILTRAR2[p] |
           w.out/v.in}
         @{{x,y,z,w,v}.print}.
 */
+
 /*
-// 1.c.
+// 1.b. buffer2.
 PIPEBUFFER2 = (out[i:NS] -> TENGO[i]),
 TENGO[i:NS] = (in[i] -> PIPEBUFFER2 | out[j:NS] -> in[i] -> TENGO[j]).
 
@@ -56,3 +58,28 @@ TENGO[i:NS] = (in[i] -> PIPEBUFFER2 | out[j:NS] -> in[i] -> TENGO[j]).
 //         1.b. directo: tiene 108 estados y 197 transiciones.
 //              buffer2: tiene 1045 estados y 2908 transiciones.
 //   iii) el de buffer2.
+
+// 1.d. (cuidado, tarda mucho si MAX es grande).
+FILTROABSTRACTO = (in[k:NS] -> out[k] -> FILTROABSTRACTO | in[k:NS] -> nada[k] -> FILTROABSTRACTO).
+
+/*
+||ABSTRACTO = (gen:GEN || {a,b,c,d,e}:PIPE || {x,y,z,w,v}:FILTROABSTRACTO)
+        /{gen.out/a.out, x.in/a.in,
+          x.out/b.out, y.in/b.in,
+          y.out/c.out, z.in/c.in,
+          z.out/d.out, w.in/d.in,
+          w.out/e.out, v.in/e.in}.
+*/
+
+
+// Ejercicio 2.
+/* A medias hacer, lo voy a terminar.
+range APattern = 1..N
+range Pattern = 0..N
+ANNOUNCER = (announce[p:APattern] -> ANNOUNCER).
+
+LISTENER = (register[p:APattern] -> LISTENER | receive[p:APattern] -> LISTENER).
+
+EVENTMANAGER[l1:Pattern][l2:Pattern][l3:Pattern][l4:Pattern] = (receive[a:APattern] -> RECEIVED[l1][l2][l3][l4][a]),
+RECEIVED[l1:Pattern][l2:Pattern][l3:Pattern][l4:Pattern][a:APattern] = (when (l1 == a) */
+
