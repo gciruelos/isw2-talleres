@@ -1,0 +1,6 @@
+const N = 4.
+ELEMENT = (up -> down -> ELEMENT).
+||FOUR = (el[1..N] : ELEMENT)
+  /{el[i:..N-1].down/el[i+1].up,
+    up/el[1].up, down/el[N].down}
+  @{up, down}.
