@@ -1,0 +1,73 @@
+const True = 1
+const False = 0
+
+// Ejercicio 1.
+set MODO = {descongelar, calentar, grill}
+PUERTA = (abrir -> cerrar -> PUERTA).
+MODO_DE_COCCION = (MODO -> MODO_DE_COCCION).
+HORNO = HORNO[0][0],
+HORNO[1][0] = (abrir -> HORNO[0][1] | terminar -> HORNO[0][0]),
+HORNO[0][0] = (on -> HORNO[1][0] | abrir -> HORNO[0][1]),
+HORNO[0][1] = (cerrar -> HORNO[0][0]).
+// ||MICROONDAS = (PUERTA || MODO_DE_COCCION || HORNO).
+
+// 1.a.
+fluent PuertaCerrada = <cerrar, abrir> initially 1
+
+// 1.b.
+assert PrendidoPostCerrar = [](on -> PuertaCerrada)
+
+// 1.c.
+//   Anda. Y si cambio el modelo no anda.
+
+// 1.d.
+assert PrendidoPostCerrarUntil = []((<> abrir) U on)
+
+// Ejercicio 2.
+range TEMPS = 0..9
+SENSOR = SENSOR[5],
+SENSOR[i:TEMPS] = (when (i < 9) in[i+1] -> AVISAR[i+1] | when (i > 0) in[i-1] -> AVISAR[i-1] | in[i] -> AVISAR[i]),
+AVISAR[i:TEMPS] = (when (i < 2) bajo -> SENSOR[i] | when (i >= 2 && i < 9) normal -> SENSOR[i] | when (i == 9) alto -> SENSOR[i]). 
+
+// ||SENSOR = (SENSOR).
+
+// 2.a.
+fluent NivelDelAguaEntre4y6 = <{in[4],in[5],in[6]}, {in[0],in[1],in[2],in[3],in[7],in[8],in[9]}> initially False
+assert PropiedadFalsa2 = [](normal -> NivelDelAguaEntre4y6)
+
+assert PropiedadInversa = []((in[4] || in[5] || in[6]) -> X normal)
+
+// Ejercicio 3.
+set SERVERS = {a,b}
+USER = (request -> reply -> user_work -> USER).
+ACEL_PETICIONES = (request -> broadcast_request -> SERVERS.sreply -> broadcast_cancel -> ACEL_PETICIONES).
+MINI_SERVER = (broadcast_request ->
+                  (process ->
+                      (sreply -> broadcast_cancel -> MINI_SERVER |
+                       broadcast_cancel -> MINI_SERVER) |
+                   broadcast_cancel -> MINI_SERVER)).
+||ACEL = (USER || ACEL_PETICIONES || SERVERS:MINI_SERVER/{broadcast_cancel/SERVERS.broadcast_cancel, broadcast_request/SERVERS.broadcast_request}).
+// 3.a.
+fluent ServerRespondio = <{SERVERS.reply}, {request}> initially False
+assert CancelaPostResponse = [](broadcast_cancel -> ServerRespondio)
+
+// 3.b.
+assert TodoPedidoEsRespondido = [](request -> <>reply)
+
+
+// Ejercicio 4.
+const MAX_TURISTAS = 4
+range N_TURISTAS = 0..MAX_TURISTAS
+ESTE = (turista.in -> ESTE).
+OESTE = (turista.out -> OESTE).
+CONTROL5 = CONTROL5[0][1],
+CONTROL5[i:N_TURISTAS][abierto:0..1] = (when (i < MAX_TURISTAS && abierto == 1) turista.in -> CONTROL5[i+1][abierto] |
+                                       when (i > 0) turista.out -> CONTROL5[i-1][abierto] |
+                                       when (i == 0) vacio -> CONTROL5[i][abierto] |
+                                       abrir -> CONTROL5[i][1] |
+                                       cerrar -> CONTROL5[i][0]).
+DIRECTOR = (abrir -> cerrar -> vacio -> DIRECTOR).
+// ||MUSEO = (ESTE || OESTE || CONTROL5 || DIRECTOR).
+
+
+
