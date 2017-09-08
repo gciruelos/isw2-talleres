@@ -21,7 +21,7 @@ assert PrendidoPostCerrar = [](on -> PuertaCerrada)
 //   Anda. Y si cambio el modelo no anda.
 
 // 1.d.
-assert PrendidoPostCerrarUntil = []((<> abrir) U on)
+assert PrendidoPostCerrarUntil = [](abrir -> (!on U cerrar))
 
 // Ejercicio 2.
 range TEMPS = 0..9
@@ -46,7 +46,7 @@ MINI_SERVER = (broadcast_request ->
                       (sreply -> broadcast_cancel -> MINI_SERVER |
                        broadcast_cancel -> MINI_SERVER) |
                    broadcast_cancel -> MINI_SERVER)).
-||ACEL = (USER || ACEL_PETICIONES || SERVERS:MINI_SERVER/{broadcast_cancel/SERVERS.broadcast_cancel, broadcast_request/SERVERS.broadcast_request}).
+// ||ACEL = (USER || ACEL_PETICIONES || SERVERS:MINI_SERVER/{broadcast_cancel/SERVERS.broadcast_cancel, broadcast_request/SERVERS.broadcast_request}).
 // 3.a.
 fluent ServerRespondio = <{SERVERS.reply}, {request}> initially False
 assert CancelaPostResponse = [](broadcast_cancel -> ServerRespondio)
@@ -69,5 +69,113 @@ CONTROL5[i:N_TURISTAS][abierto:0..1] = (when (i < MAX_TURISTAS && abierto == 1) 
 DIRECTOR = (abrir -> cerrar -> vacio -> DIRECTOR).
 // ||MUSEO = (ESTE || OESTE || CONTROL5 || DIRECTOR).
 
+fluent MuseoAbierto = <{abrir}, {cerrar}> initially True
+assert AbiertoSiEntran = [](turista.in -> MuseoAbierto)
 
+// Ejercicio 5.
+const MAX = 11
+range NS = 1..MAX
 
+GEN = GEN[2],
+GEN[i:NS] = (out[i] -> GEN[i+1]),
+GEN[MAX+1] = (eos -> STOP).
+
+PIPE = (out[i:NS] -> in[i] -> PIPE).
+
+FILTRO = (in[k:NS] -> print[k] -> FILTRAR2[k]),
+FILTRAR2[p:NS] = (in[k:NS] -> FILTRAR3[p][k]),
+FILTRAR3[p:NS][k:NS] = (when (k % p != 0) out[k] -> FILTRAR2[p] |
+                        when (k % p == 0) nada[k] ->  FILTRAR2[p]).
+
+/*
+||PRIMOS = (gen:GEN || {a,b,c,d,e}:PIPE || {x,y,z,w,v}:FILTRO)
+        /{gen.out/a.out, x.in/a.in,
+          x.out/b.out, y.in/b.in,
+          y.out/c.out, z.in/c.in,
+          z.out/d.out, w.in/d.in,
+          w.out/e.out, v.in/e.in}
+        @{{x,y,z,w,v}.print}.
+*/
+
+// 5.a.
+assert PrimosEnOrden = ((<>x.print[2]) && (<>y.print[3]) && (<>z.print[5]) &&
+                            (!y.print[3] U x.print[2]) && (!z.print[5] U y.print[3]))
+
+// 5.b.
+assert UltimoMuestraPrimo = (<>v.print[11])
+
+// 5.c.
+FILTRO_QUE_PIENSA = (in[k:NS] -> print[k] -> FILTRAR2[k]),
+FILTRAR2[p:NS] = (in[k:NS] -> FILTRAR3[p][k]),
+FILTRAR3[p:NS][k:NS] = (when (k % p != 0) out[k] -> PENSAR[p] |
+                        when (k % p == 0) nada[k] ->  PENSAR[p]),
+PENSAR[p:NS] = (pensar -> termineDePensar -> FILTRAR2[p] | pensar -> PENSAR[p]).
+/*||PRIMOS_PENSANDO = (gen:GEN || {a,b,c}:PIPE || {x,y,z}:FILTRO_QUE_PIENSA)
+        /{gen.out/a.out, x.in/a.in,
+          x.out/b.out, y.in/b.in,
+          y.out/c.out, z.in/c.in}
+        @{{x,y,z}.print}.
+*/
+// Hay que deshabilitar Fair Choice for LTL check
+assert UltimoMuestraPrimoPensando = (<>z.print[5])
+
+// Ejercicio 6.
+const N = 3 // number of each type of car
+range T = 0..N // type of car count
+range ID= 1..N // car identities
+
+/*
+BRIDGE = BRIDGE[0][0],  //initially empty
+BRIDGE[nr:T][nb:T] =    //nr is the red count, nb the blue count
+        (when (nb==0) red[ID].enter -> BRIDGE[nr+1][nb] |red[ID].exit -> BRIDGE[nr-1][nb]
+        |when (nr==0) blue[ID].enter -> BRIDGE[nr][nb+1] |blue[ID].exit -> BRIDGE[nr][nb-1]).
+CAR = (enter->exit->CAR).*/
+/* cars may not overtake each other */
+NOPASS1   = C[1],
+C[i:ID]   = ([i].enter -> C[i%N+1]).
+NOPASS2   = C[1],
+C[i:ID]   = ([i].exit -> C[i%N+1]).
+||CONVOY = ([ID]:CAR || NOPASS1 || NOPASS2).
+||SingleLaneBridge = (red:CONVOY || blue:CONVOY || BRIDGE).
+
+// 6.a.
+assert OneWayFLTL = [](forall[i:ID] (red[i].enter ->
+                                     forall[j:ID] (!blue[j].enter U red[i].exit)))
+// 6.b.
+assert RedEntra = exists[i:ID](<>red[i].enter)
+
+// 6.c.
+assert RedProgreso = forall[i:ID]([](<>red[i].enter))
+
+// 6.d
+range B = False..True
+
+BRIDGE = BRIDGE[0][0][0][0][True],  //initially empty
+BRIDGE[nr:T][nb:T][wr:T][wb:T][bt:B] =
+        (red[ID].request  -> BRIDGE[nr][nb][wr+1][wb][bt]
+        |when (nb==0 && (wb==0 || !bt))
+           red[ID].enter  -> BRIDGE[nr+1][nb][wr-1][wb][bt]
+        |red[ID].exit     -> BRIDGE[nr-1][nb][wr][wb][True]
+        |blue[ID].request->BRIDGE[nr][nb][wr][wb+1][bt]
+        |when (nr==0 && (wr==0 || bt))
+           blue[ID].enter -> BRIDGE[nr][nb+1][wr][wb-1][bt]
+        |blue[ID].exit    -> BRIDGE[nr][nb-1][wr][wb][False]
+        ).
+
+// 6.d.i. Ok.
+
+// 6.d.ii.
+property ONEWAY = (red[ID].enter -> EASTBOUND[1]
+                  | blue.[ID].enter ->WESTBOUND[1]),
+EASTBOUND[i:ID] = (when(i<N) red[ID].enter -> EASTBOUND[i+1]
+                  |when(i==1)red[ID].exit  -> ONEWAY
+                  |when( i>1)red[ID].exit  -> EASTBOUND[i-1]
+                  ),
+WESTBOUND[i:ID] = (when(i<N) blue[ID].enter -> WESTBOUND[i+1]
+                  |when(i==1)blue[ID].exit  -> ONEWAY
+                  |when( i>1)blue[ID].exit  -> WESTBOUND[i-1]
+                  ).
+progress BLUECROSS = {blue[ID].enter}
+progress REDCROSS =  {red[ID].enter}
+
+// 6.d.iii. Hecho antes
