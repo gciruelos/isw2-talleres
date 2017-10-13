@@ -1,14 +1,5 @@
 #define N 2
-// Creo que va a tener 4 estados.
-//  init -> goto next -> dummy!85
-//  | ^ ^___goto next ______|
-//  | |__goto next __
-//  V                \
-//  goto next -> dummy!170 
-// init
-// dummy!85 -> goto next -> dummy!170 -> goto next
-//   ^                                       |
-//   |---------------------------------------|
+// Creo que va a tener 1 estado.
 init {
     chan dummy = [N] of {byte};
     do
@@ -16,3 +7,5 @@ init {
         :: dummy!170
     od
 }
+
+// Tiene un estado, y no cambia al cambiar el N

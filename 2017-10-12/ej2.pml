@@ -6,4 +6,4 @@ init {
     od
 }
 
-// Segun 
+// Tiene solo 1 (el i++), el goto no cuenta como estado.
