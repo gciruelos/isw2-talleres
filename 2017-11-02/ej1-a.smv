@@ -1,0 +1,37 @@
+MODULE logic_and(in1, in2)
+VAR
+  out : boolean;
+ASSIGN
+  next(out) := in1 & in2;
+
+MODULE logic_xor(in1, in2)
+VAR
+  out : boolean;
+ASSIGN
+  next(out) := (in1 & !in2) | (!in1 & in2);
+
+MODULE main
+VAR
+  input1 : boolean;
+  andproc : logic_and(input1, xorproc.out);
+  xorproc : logic_xor(input1, andproc.out);
+ASSIGN
+  init(input1) := TRUE;
+--  next(input1) := !input1;
+  
+
+-- 1) a)
+--   i. OK
+--   ii. Hay 8 estados alcanzables.
+--       {(input1, andproc.out, xorproc.out)}
+--       = {true, false} x {true, false} x {true, false}
+--   iii. si son ambos 1, el and va a dar 1, el xor 0, y el and despues va a dar 0 y el xor 1 y asi.
+--        si alguno es 0, el and va a dar 0 y el xor va a dar !X.
+--   iv.
+SPEC
+  (AG (AX input1 <-> input1)) -> (AF AG xorproc.out)
+  -- Si se alternan siempre es 1, entonces el output se va estabilizar en 1.
+  -- No vale
+  --   (AF AG xorproc.out) | (AF AG !xorproc.out)
+
+

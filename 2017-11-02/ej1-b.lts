@@ -1,0 +1,21 @@
+range BOOL = 0..1
+
+AND = AND[1][1],
+AND[0][0] = (output[0] -> TICK),
+AND[0][1] = (output[0] -> TICK),
+AND[1][0] = (output[0] -> TICK),
+AND[1][1] = (output[1] -> TICK),
+TICK = (tick -> NEXT),
+NEXT = (input1[0] -> (input2[0] -> AND[0][0] | input2[1] -> AND[0][1]) | input1[1] -> (input2[0] -> AND[1][0] | input2[1] -> AND[1][1])).
+
+XOR = XOR[1][1],
+XOR[0][0] = (output[0] -> TICK),
+XOR[0][1] = (output[1] -> TICK),
+XOR[1][0] = (output[1] -> TICK),
+XOR[1][1] = (output[0] -> TICK),
+TICK = (tick -> NEXT),
+NEXT = (input1[0] -> (input2[0] -> XOR[0][0] | input2[1] -> XOR[0][1]) | input1[1] -> (input2[0] -> XOR[1][0] | input2[1] -> XOR[1][1])).
+
+X = (output_and[0] -> output_xor[0] -> tick -> X | output_and[1] -> output_xor[1] -> tick -> X).
+
+||CIRCUITO = (and:AND || xor:XOR || x:X)/{and.output/xor.input2, x.output_and/and.input1, x.output_xor/xor.input1, xor.output/and.input2}.

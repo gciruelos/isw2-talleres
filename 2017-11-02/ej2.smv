@@ -1,0 +1,105 @@
+MODULE process1(a,b,turn)
+VAR
+  pc: {out, wait, cs};
+ASSIGN
+  init(pc) := out;
+  next(pc) :=  case
+                 pc = out : wait;
+                 pc = wait & (!b | turn) : cs;
+                 pc = cs : out;
+                 TRUE: pc;
+               esac;
+  next(turn) := case
+                  pc = out : TRUE;
+                  TRUE: turn;
+                esac;
+  next(a) := case
+               pc = out : TRUE;
+               pc = cs : FALSE;
+               TRUE: a;
+             esac;
+  next(b) := b;
+FAIRNESS
+  running
+
+MODULE process2(a,b,turn)
+VAR
+  pc: {out, wait, cs};
+ASSIGN
+  init(pc) := out;
+  next(pc) := case
+                pc = out : wait;
+                pc = wait & (!a | turn): cs;
+                pc = cs : out;
+                TRUE: pc;
+              esac;
+  next(turn) := case
+                  pc = out : FALSE;
+                  TRUE: turn;
+                esac;
+  next(a) := a;
+  next(b) := case
+               pc = out : TRUE;
+               pc = cs : FALSE;
+               TRUE: b;
+             esac;
+FAIRNESS
+  running
+
+MODULE main
+VAR
+  a : boolean;
+  b : boolean;
+  turn : boolean;
+  p1 : process process1(a,b,turn);
+  p2 : process process2(a,b,turn);
+SPEC
+  -- Fairness:
+  -- (AG AF turn) & (AG AF !turn)
+  -- Exclusion mutua:
+  AG (!(p1.pc = cs & p2.pc = cs))
+  -- No deberia valer (dice que no hay exclusion mutua):
+  -- EF (p1.pc = cs & p2.pc = cs)
+
+
+-- 2) b. Si se cambia la linea no anda, el siguiente contraejemplo lo comprueba:
+-- specification AG !(p1.pc = cs & p2.pc = cs)  is false
+-- as demonstrated by the following execution sequence
+-- Trace Description: CTL Counterexample
+-- Trace Type: Counterexample
+--   -> State: 1.1 <-
+--     a = FALSE
+--     b = FALSE
+--     turn = FALSE
+--     p1.pc = out
+--     p2.pc = out
+--   -> Input: 1.2 <-
+--     _process_selector_ = p2
+--     running = FALSE
+--     p2.running = TRUE
+--     p1.running = FALSE
+--   -> State: 1.2 <-
+--     b = TRUE
+--     p2.pc = wait
+--   -> Input: 1.3 <-
+--     _process_selector_ = p1
+--     p2.running = FALSE
+--     p1.running = TRUE
+--   -> State: 1.3 <-
+--     a = TRUE
+--     turn = TRUE
+--     p1.pc = wait
+--   -> Input: 1.4 <-
+--     _process_selector_ = p2
+--     p2.running = TRUE
+--     p1.running = FALSE
+--   -> State: 1.4 <-
+--     p2.pc = cs
+--   -> Input: 1.5 <-
+--     _process_selector_ = p1
+--     p2.running = FALSE
+--     p1.running = TRUE
+--   -> State: 1.5 <-
+--     p1.pc = cs
+
+

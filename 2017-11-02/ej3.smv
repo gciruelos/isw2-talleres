@@ -1,0 +1,64 @@
+MODULE main
+VAR
+  barco: {vacio, i_pollo, i_zorro, i_maiz};
+  posicion_barco : {orilla1, viajando_a_orilla2, orilla2, viajando_a_orilla1};
+  pollo : {orilla1, orilla2};
+  zorro : {orilla1, orilla2};
+  maiz : {orilla1, orilla2};
+ASSIGN
+  init(zorro) := orilla1;
+  init(pollo) := orilla1;
+  init(maiz) := orilla1;
+  init(barco) := vacio;
+  init(posicion_barco) := orilla1;
+
+  next(posicion_barco) := case
+                            posicion_barco = orilla1 :viajando_a_orilla2;
+                            posicion_barco = viajando_a_orilla2 : orilla2;
+                            posicion_barco = orilla2 : viajando_a_orilla1;
+                            posicion_barco = viajando_a_orilla1 : orilla1;
+                          esac;
+
+  next(barco) := case
+                   next(posicion_barco) = viajando_a_orilla2 & pollo = orilla1 & zorro = orilla1 & maiz = orilla1: i_pollo union i_zorro union i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla2 & pollo = orilla1 & maiz = orilla1: i_pollo union i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla2 & zorro = orilla1 & maiz = orilla1: i_zorro union i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla2 & pollo = orilla1 & zorro = orilla1: i_pollo union i_zorro union vacio;
+                   next(posicion_barco) = viajando_a_orilla2 & pollo = orilla1: i_pollo union vacio;
+                   next(posicion_barco) = viajando_a_orilla2 & zorro = orilla1: i_zorro union vacio;
+                   next(posicion_barco) = viajando_a_orilla2 & maiz = orilla1: i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla2: vacio;
+
+                   next(posicion_barco) = viajando_a_orilla1 & pollo = orilla2 & zorro = orilla2 & maiz = orilla2: i_pollo union i_zorro union i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla1 & pollo = orilla2 & maiz = orilla2: i_pollo union i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla1 & zorro = orilla2 & maiz = orilla2: i_zorro union i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla1 & pollo = orilla2 & zorro = orilla2: i_pollo union i_zorro union vacio;
+                   next(posicion_barco) = viajando_a_orilla1 & pollo = orilla2: i_pollo union vacio;
+                   next(posicion_barco) = viajando_a_orilla1 & zorro = orilla2: i_zorro union vacio;
+                   next(posicion_barco) = viajando_a_orilla1 & maiz = orilla2: i_maiz union vacio;
+                   next(posicion_barco) = viajando_a_orilla1: vacio;
+                   TRUE: barco;
+                 esac;
+
+  next(zorro) := case
+                   barco = i_zorro & next(posicion_barco) = orilla2 : orilla2;
+                   barco = i_zorro & next(posicion_barco) = orilla1 : orilla1;
+                   TRUE: zorro;
+                 esac;
+
+  next(pollo) := case
+                   barco = i_pollo & next(posicion_barco) = orilla2 : orilla2;
+                   barco = i_pollo & next(posicion_barco) = orilla1 : orilla1;
+                   TRUE: pollo;
+                 esac;
+
+  next(maiz) := case
+                   barco = i_maiz & next(posicion_barco) = orilla2 : orilla2;
+                   barco = i_maiz & next(posicion_barco) = orilla1 : orilla1;
+                   TRUE: maiz;
+                 esac;
+
+SPEC
+  AG ((zorro = pollo -> zorro = maiz) & (pollo = maiz -> maiz = zorro))
+
+
